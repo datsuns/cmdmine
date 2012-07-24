@@ -20,7 +20,8 @@ class RedcuineRunner
 		'init'		=> '',
 		'config'	=> '',
 		'list'		=> '-g',
-		'show'		=> '-g --id',
+		'show'		=> '',
+		'download'	=> '-g --id',
 	}
 	CMD_INFO = {
 		'init'		=> "初期化を実行します",
@@ -66,7 +67,7 @@ class RedcuineRunner
 	#==================================
 	def download id
 		work = File.open( TEMP_FILE, 'w' )
-		run "#{CMD} #{CMD_LIST['show']} #{id}" do |line|
+		run "#{CMD} #{CMD_LIST['download']} #{id}" do |line|
 			work << line
 		end
 		work.close
