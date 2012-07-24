@@ -12,7 +12,7 @@ require 'open3'
 
 #======================================
 class RedcuineRunner
-	TEMP_FILE = '.edit'
+	TEMP_FILE = '.work'
 	CONFIG_FILE = '~/.redcuine/config.yml'
 	EDITOR = 'vim'
 	CMD = 'redissue'
@@ -20,11 +20,14 @@ class RedcuineRunner
 		'init'		=> '',
 		'config'	=> '',
 		'list'		=> '-g',
+		'show'		=> '-g --id',
 	}
 	CMD_INFO = {
-		'init'		=> '初期化を実行します',
-		'config'	=> '設定ファイルを編集します',
-		'list'		=> 'チケットの一覧を取得します',
+		'init'		=> "初期化を実行します",
+		'exit'		=> "スクリプトを終了します",
+		'config'	=> "設定ファイルを編集します",
+		'list'		=> "チケットの一覧を取得します",
+		'show <id>'	=> "<id>のチケットの詳細を#{EDITOR}で表示します",
 	}
 
 	#==================================
@@ -33,7 +36,7 @@ class RedcuineRunner
 
 	#==================================
 	def help
-		CMD_INFO.each_key do |key| puts key end
+		CMD_INFO.each_key do |key| puts "#{key} : #{CMD_INFO[key]}" end
 	end
 
 	#==================================
@@ -61,6 +64,16 @@ class RedcuineRunner
 	end
 
 	#==================================
+	def download id
+		work = File.open( TEMP_FILE, 'w' )
+		run "#{CMD} #{CMD_LIST['show']} #{id}" do |line|
+			work << line
+		end
+		work.close
+		TEMP_FILE
+	end
+
+	#==================================
 	def init *params
 		run "#{CMD}" do |line| puts line end
 	end
@@ -82,6 +95,13 @@ class RedcuineRunner
 			info += str if subject? str
 		end
 	end
+
+	#==================================
+	def show *params
+		file = download params[0][0]
+		system "#{EDITOR} #{file}"
+		system "rm #{file}"
+	end
 end
 
 
@@ -97,6 +117,7 @@ class CmdMine
 		params = input.split(' ')
 		func = params[0]
 		args = params[1..params.length]
+		return true if input.length < 1
 		return false if func.match 'exit'
 		if @runner.command? func then
 			@runner.send( func, args ) 
